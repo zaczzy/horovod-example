@@ -1,0 +1,5 @@
+- step:
+    name: environment-check
+    image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
+    command:
+      - printenv
