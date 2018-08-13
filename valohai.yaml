@@ -3,3 +3,11 @@
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
       - printenv
+      - nvidia-smi
+      - nvcc --version | grep release
+      - cat /usr/include/x86_64-linux-gnu/cudnn_v*.h | grep CUDNN_MAJOR -A 2
+      - python --version
+      - python -c "import torch; print(torch.__version__);"
+      - python -c "import keras; print(keras.__version__);"
+      - python -c "import tensorflow; print(tensorflow.__version__);"
+      - python -c "from tensorflow.python.client import device_lib; device_lib.list_local_devices();"
