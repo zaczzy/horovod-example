@@ -1,4 +1,35 @@
 - step:
+    name: master-keras-mnist
+    image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
+    command:
+      - mkdir /root/.ssh && chmod 0700 /root/.ssh
+      - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
+      - chmod 0700 /root/.ssh/id_rsa
+      - mpirun -np 2 -H 172.17.0.2:1,172.17.0.3:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py
+      - touch checkount-24.h5p
+      - mv checkpoint-* /valohai/outputs
+    inputs:
+      - name: ssh
+        default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
+
+- step:
+    name: worker-keras-mnist
+    image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
+    command:
+      - mkdir /root/.ssh && chmod 0700 /root/.ssh
+      - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
+      - chmod 0700 /root/.ssh/id_rsa
+      - ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub
+      - cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+      - printenv > /root/.ssh/environment
+      - chmod 0700 /root/.ssh/*
+      - ls -la /root/.ssh
+      - /usr/sbin/sshd -d -oPermitUserEnvironment=yes -p 12345
+    inputs:
+      - name: ssh
+        default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
+
+- step:
     name: single-keras-mnist-run
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
