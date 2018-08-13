@@ -1,4 +1,10 @@
 - step:
+    name: single-keras-mnist-run
+    image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
+    command:
+      - mpirun -np 1 -H localhost:1 python keras_mnist_advanced.py
+
+- step:
     name: environment-check
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
