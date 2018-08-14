@@ -7,13 +7,22 @@
       - mkdir /root/.ssh && chmod 0700 /root/.ssh
       - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
       - chmod 0700 /root/.ssh/id_rsa
-      - mpirun -np 3 -H 172.31.23.232:1,172.31.25.54:1,172.31.27.8:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py
+      - mpirun -np 3 -H 172.31.23.232:1,172.31.25.54:1,172.31.27.8:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py {parameters}
       - ls -la
     inputs:
       - name: mnist
         default: https://s3.amazonaws.com/img-datasets/mnist.npz
       - name: ssh
         default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
+    parameters:
+      - name: epochs
+        pass-as: --epochs={v}
+        type: integer
+        default: 24
+      - name: batch_size
+        pass-as: --batch_size={v}
+        type: integer
+        default: 128
 
 - step:
     name: worker-keras-mnist
@@ -39,7 +48,16 @@
     name: single-keras-mnist-run
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
-      - mpirun -np 1 -H localhost:1 python keras_mnist_advanced.py
+      - mpirun -np 1 -H localhost:1 python keras_mnist_advanced.py {parameters}
+    parameters:
+      - name: epochs
+        pass-as: --epochs={v}
+        type: integer
+        default: 24
+      - name: batch_size
+        pass-as: --batch_size={v}
+        type: integer
+        default: 128
 
 - step:
     name: environment-check
