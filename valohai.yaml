@@ -5,9 +5,8 @@
       - mkdir /root/.ssh && chmod 0700 /root/.ssh
       - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
       - chmod 0700 /root/.ssh/id_rsa
-      - mpirun -np 2 -H 172.17.0.2:1,172.17.0.3:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py
-      - touch checkount-24.h5p
-      - mv checkpoint-* /valohai/outputs
+      - mpirun -np 3 -H 172.31.23.232:1,172.31.25.54:1,172.31.27.8:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py
+      - ls -la
     inputs:
       - name: ssh
         default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
@@ -23,7 +22,6 @@
       - cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
       - printenv > /root/.ssh/environment
       - chmod 0700 /root/.ssh/*
-      - ls -la /root/.ssh
       - /usr/sbin/sshd -d -oPermitUserEnvironment=yes -p 12345
     inputs:
       - name: ssh
