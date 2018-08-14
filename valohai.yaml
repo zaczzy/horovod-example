@@ -2,12 +2,16 @@
     name: master-keras-mnist
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
+      - mkdir -p ~/.keras/datasets/
+      - cp /valohai/inputs/mnist/mnist.npz ~/.keras/datasets/mnist.npz
       - mkdir /root/.ssh && chmod 0700 /root/.ssh
       - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
       - chmod 0700 /root/.ssh/id_rsa
       - mpirun -np 3 -H 172.31.23.232:1,172.31.25.54:1,172.31.27.8:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py
       - ls -la
     inputs:
+      - name: mnist
+        default: https://s3.amazonaws.com/img-datasets/mnist.npz
       - name: ssh
         default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
 
@@ -15,7 +19,9 @@
     name: worker-keras-mnist
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
-      - mkdir /root/.ssh && chmod 0700 /root/.ssh
+      - mkdir -p ~/.keras/datasets/
+      - cp /valohai/inputs/mnist/mnist.npz ~/.keras/datasets/mnist.npz
+      - mkdir -p /root/.ssh && chmod 0700 /root/.ssh
       - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
       - chmod 0700 /root/.ssh/id_rsa
       - ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub
@@ -24,6 +30,8 @@
       - chmod 0700 /root/.ssh/*
       - /usr/sbin/sshd -d -oPermitUserEnvironment=yes -p 12345
     inputs:
+      - name: mnist
+        default: https://s3.amazonaws.com/img-datasets/mnist.npz
       - name: ssh
         default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
 
