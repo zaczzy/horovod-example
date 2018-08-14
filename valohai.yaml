@@ -7,7 +7,7 @@
       - mkdir /root/.ssh && chmod 0700 /root/.ssh
       - cp /valohai/inputs/ssh/horovod_example_ssh /root/.ssh/id_rsa
       - chmod 0700 /root/.ssh/id_rsa
-      - mpirun -np 3 -H 172.31.23.232:1,172.31.25.54:1,172.31.27.8:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py {parameters}
+      - mpirun -np 3 -H 172.31.22.103:1,172.31.22.220:1,172.31.23.43:1 -mca plm_rsh_args "-p 12345" python keras_mnist_advanced.py {parameters}
       - mv checkpoint-*.h5 /valohai/outputs
     inputs:
       - name: mnist

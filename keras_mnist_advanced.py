@@ -1,4 +1,6 @@
 from __future__ import print_function
+import json
+from keras.callbacks import LambdaCallback
 import argparse
 import keras
 from keras.datasets import mnist
@@ -86,6 +88,16 @@ if __name__ == '__main__':
                   optimizer=opt,
                   metrics=['accuracy'])
 
+    json_logging_callback = LambdaCallback(
+        on_epoch_end=lambda epoch, logs: print(json.dumps({
+            "epoch": epoch,
+            "loss": logs["loss"],
+            "acc": logs["acc"],
+            "val_loss": logs["val_loss"],
+            "val_acc": logs["val_acc"],
+        })),
+    )
+
     callbacks = [
         # Horovod: broadcast initial variable states from rank 0 to all other processes.
         # This is necessary to ensure consistent initialization of all workers when
@@ -105,6 +117,8 @@ if __name__ == '__main__':
 
         # Reduce the learning rate if training plateaues.
         keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1),
+
+        json_logging_callback,
     ]
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from corrupting them.
@@ -125,7 +139,7 @@ if __name__ == '__main__':
                         steps_per_epoch=train_batches // hvd.size(),
                         callbacks=callbacks,
                         epochs=epochs,
-                        verbose=1,
+                        verbose=0,
                         validation_data=test_gen.flow(x_test, y_test, batch_size=batch_size),
                         validation_steps=3 * test_batches // hvd.size())
 
