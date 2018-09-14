@@ -18,7 +18,7 @@
       - name: epochs
         pass-as: --epochs={v}
         type: integer
-        default: 24
+        default: 12
       - name: batch_size
         pass-as: --batch_size={v}
         type: integer
@@ -45,6 +45,29 @@
         default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
 
 - step:
+    name: without-horovod
+    image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
+    command:
+      - mkdir -p ~/.keras/datasets/
+      - ln -s /valohai/inputs/mnist/* ~/.keras/datasets/
+      - python keras_mnist_advanced.py {parameters}
+      - mv checkpoint-*.h5 /valohai/outputs
+    inputs:
+      - name: mnist
+        default: https://s3.amazonaws.com/img-datasets/mnist.npz
+      - name: ssh
+        default: https://s3-eu-west-1.amazonaws.com/valohai-examples/horovod-example/horovod_example_ssh
+    parameters:
+      - name: epochs
+        pass-as: --epochs={v}
+        type: integer
+        default: 12
+      - name: batch_size
+        pass-as: --batch_size={v}
+        type: integer
+        default: 128
+
+- step:
     name: single-keras-mnist-run
     image: uber/horovod:0.13.11-tf1.10.0-torch0.4.0-py3.5
     command:
@@ -56,7 +79,7 @@
       - name: epochs
         pass-as: --epochs={v}
         type: integer
-        default: 24
+        default: 12
       - name: batch_size
         pass-as: --batch_size={v}
         type: integer
