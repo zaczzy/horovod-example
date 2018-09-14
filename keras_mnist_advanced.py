@@ -10,7 +10,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 import tensorflow as tf
-#import horovod.keras as hvd
+# import horovod.keras as hvd
 
 if __name__ == '__main__':
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from corrupting them.
     # if hvd.rank() == 0:
-    # callbacks.append(keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
+    callbacks.append(keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
 
     # Set up ImageDataGenerators to do data augmentation for the training images.
     train_gen = ImageDataGenerator(rotation_range=8, width_shift_range=0.08, shear_range=0.3,
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                         verbose=0,
                         validation_data=test_gen.flow(x_test, y_test, batch_size=batch_size),
                         validation_steps=3 * test_batches,
-                        #validation_steps=3 * test_batches // hvd.size(),
+                        # validation_steps=3 * test_batches // hvd.size(),
                         )
 
     # Evaluate the model on the full data set.
