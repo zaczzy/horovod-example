@@ -10,7 +10,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 import tensorflow as tf
-import horovod.keras as hvd
+#import horovod.keras as hvd
 
 if __name__ == '__main__':
 
@@ -20,12 +20,12 @@ if __name__ == '__main__':
     FLAGS, unparsed = parser.parse_known_args()
 
     # Horovod: initialize Horovod.
-    hvd.init()
+    # hvd.init()
 
     # Horovod: pin GPU to be used to process local rank (one GPU per process)
     config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    config.gpu_options.visible_device_list = str(hvd.local_rank())
+    # config.gpu_options.allow_growth = True
+    # config.gpu_options.visible_device_list = str(hvd.local_rank())
     K.set_session(tf.Session(config=config))
 
     batch_size = FLAGS.batch_size
@@ -79,10 +79,11 @@ if __name__ == '__main__':
     model.add(Dense(num_classes, activation='softmax'))
 
     # Horovod: adjust learning rate based on number of GPUs.
-    opt = keras.optimizers.Adadelta(lr=1.0 * hvd.size())
+    # opt = keras.optimizers.Adadelta(lr=1.0 * hvd.size())
+    opt = keras.optimizers.Adadelta(lr=1.0)
 
     # Horovod: add Horovod Distributed Optimizer.
-    opt = hvd.DistributedOptimizer(opt)
+    # opt = hvd.DistributedOptimizer(opt)
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=opt,
@@ -102,18 +103,18 @@ if __name__ == '__main__':
         # Horovod: broadcast initial variable states from rank 0 to all other processes.
         # This is necessary to ensure consistent initialization of all workers when
         # training is started with random weights or restored from a checkpoint.
-        hvd.callbacks.BroadcastGlobalVariablesCallback(0),
+        # hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
         # Horovod: average metrics among workers at the end of every epoch.
         #
         # Note: This callback must be in the list before the ReduceLROnPlateau,
         # TensorBoard or other metrics-based callbacks.
-        hvd.callbacks.MetricAverageCallback(),
+        # hvd.callbacks.MetricAverageCallback(),
 
         # Horovod: using `lr = 1.0 * hvd.size()` from the very beginning leads to worse final
         # accuracy. Scale the learning rate `lr = 1.0` ---> `lr = 1.0 * hvd.size()` during
         # the first five epochs. See https://arxiv.org/abs/1706.02677 for details.
-        hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
+        # hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
 
         # Reduce the learning rate if training plateaues.
         keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1),
@@ -122,8 +123,8 @@ if __name__ == '__main__':
     ]
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from corrupting them.
-    if hvd.rank() == 0:
-        callbacks.append(keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
+    # if hvd.rank() == 0:
+    # callbacks.append(keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
 
     # Set up ImageDataGenerators to do data augmentation for the training images.
     train_gen = ImageDataGenerator(rotation_range=8, width_shift_range=0.08, shear_range=0.3,
@@ -136,12 +137,15 @@ if __name__ == '__main__':
     # Over-sampling of validation data helps to increase probability that every validation
     # example will be evaluated.
     model.fit_generator(train_gen.flow(x_train, y_train, batch_size=batch_size),
-                        steps_per_epoch=train_batches // hvd.size(),
+                        # steps_per_epoch=train_batches // hvd.size(),
+                        steps_per_epoch=train_batches,
                         callbacks=callbacks,
                         epochs=epochs,
                         verbose=0,
                         validation_data=test_gen.flow(x_test, y_test, batch_size=batch_size),
-                        validation_steps=3 * test_batches // hvd.size())
+                        validation_steps=3 * test_batches,
+                        #validation_steps=3 * test_batches // hvd.size(),
+                        )
 
     # Evaluate the model on the full data set.
     score = model.evaluate(x_test, y_test, verbose=0)
